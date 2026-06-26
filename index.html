@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro Rides — Route Corridor Dashboard</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">Macro Rides</span>
+      <span class="brand-sub">Route Intelligence</span>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle" title="Collapse sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel">Idle</span>
+    <span class="status-time" id="statusTime">--:--</span>
+  </div>
+
+  <!-- Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card" id="metricRoute">
+      <div class="metric-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <div class="metric-value" id="routeLength">0.00</div>
+        <div class="metric-label">Route Length (km)</div>
+      </div>
+    </div>
+
+    <div class="metric-card highlight" id="metricPickups">
+      <div class="metric-icon green">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="10" r="3"/>
+          <path d="M12 2a8 8 0 0 0-8 8c0 5.4 7.1 12.3 7.4 12.6a.8.8 0 0 0 1.2 0C13 22.3 20 15.4 20 10a8 8 0 0 0-8-8z"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <div class="metric-value green" id="eligibleCount">0</div>
+        <div class="metric-label">Eligible Pickups</div>
+      </div>
+    </div>
+
+    <div class="metric-card" id="metricTotal">
+      <div class="metric-icon amber">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <div class="metric-value amber" id="totalPickups">0</div>
+        <div class="metric-label">Total Pickups</div>
+      </div>
+    </div>
+
+    <div class="metric-card" id="metricH3">
+      <div class="metric-icon purple">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+        </svg>
+      </div>
+      <div class="metric-body">
+        <div class="metric-value purple" id="h3Count">0</div>
+        <div class="metric-label">H3 Cells</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Corridor Settings -->
+  <div class="section-block">
+    <div class="section-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+      </svg>
+      Corridor Settings
+    </div>
+    <div class="slider-row">
+      <label class="slider-label">Buffer Radius</label>
+      <span class="slider-val" id="bufferVal">350 m</span>
+    </div>
+    <input type="range" class="slider" id="bufferSlider" min="100" max="1000" step="50" value="350" />
+
+    <div class="slider-row" style="margin-top:12px">
+      <label class="slider-label">H3 Resolution</label>
+      <span class="slider-val" id="resolutionVal">9</span>
+    </div>
+    <input type="range" class="slider" id="resolutionSlider" min="7" max="11" step="1" value="9" />
+  </div>
+
+  <!-- Simulation Controls -->
+  <div class="section-block">
+    <div class="section-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Simulation
+    </div>
+
+    <div class="speed-row">
+      <span class="speed-label">Playback Speed</span>
+      <div class="speed-btns">
+        <button class="speed-btn" data-speed="0.5">0.5×</button>
+        <button class="speed-btn active" data-speed="1">1×</button>
+        <button class="speed-btn" data-speed="2">2×</button>
+        <button class="speed-btn" data-speed="4">4×</button>
+      </div>
+    </div>
+
+    <div class="sim-progress">
+      <div class="sim-track">
+        <div class="sim-fill" id="simFill"></div>
+        <div class="sim-thumb" id="simThumb"></div>
+      </div>
+      <div class="sim-steps"><span id="simStep">0</span> / <span id="simTotal">0</span></div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btnSimulate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Simulate
+      </button>
+      <button class="btn btn-ghost" id="btnPause" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+        </svg>
+        Pause
+      </button>
+      <button class="btn btn-ghost" id="btnReset">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+        </svg>
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="section-block legend-block">
+    <div class="section-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      Legend
+    </div>
+    <div class="legend-items">
+      <div class="legend-item"><span class="leg-dot" style="background:#00ff88;box-shadow:0 0 6px #00ff88"></span>Eligible Pickup</div>
+      <div class="legend-item"><span class="leg-dot" style="background:#ff4444;box-shadow:0 0 6px #ff4444"></span>Not Eligible</div>
+      <div class="legend-item"><span class="leg-line" style="background:#38bdf8"></span>Driver Route</div>
+      <div class="legend-item"><span class="leg-box" style="border-color:#a855f7;background:rgba(168,85,247,0.12)"></span>Corridor Buffer</div>
+      <div class="legend-item"><span class="leg-box" style="border-color:#f59e0b;background:rgba(245,158,11,0.08)"></span>H3 Cells</div>
+      <div class="legend-item">
+        <div class="driver-icon-mini">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="#00ff88"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+        </div>
+        Driver Position
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <span>Macro Rides © 2026</span>
+    <a href="https://github.com" target="_blank" class="footer-link">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.22.66-.48v-1.7C6.73 19.91 6.14 18 6.14 18c-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0 1 12 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.16.58.67.48A10.01 10.01 0 0 0 22 12c0-5.52-4.48-10-10-10z"/>
+      </svg>
+      GitHub
+    </a>
+  </div>
+</aside>
+
+<!-- ===== MAIN MAP ===== -->
+<main class="map-container">
+  <!-- Topbar -->
+  <div class="topbar">
+    <button class="topbar-expand" id="expandSidebar" style="display:none" title="Open sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+    <div class="topbar-title">Zone Corridor Visualizer</div>
+    <div class="topbar-pills">
+      <button class="pill active" id="toggleRoute" data-layer="route">Route</button>
+      <button class="pill active" id="toggleBuffer" data-layer="buffer">Corridor</button>
+      <button class="pill active" id="toggleH3" data-layer="h3">H3 Grid</button>
+      <button class="pill active" id="togglePickups" data-layer="pickups">Pickups</button>
+    </div>
+    <button class="topbar-btn" id="btnFit" title="Fit map to route">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+</main>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
+<script src="js/data.js"></script>
+<script src="js/h3utils.js"></script>
+<script src="js/map.js"></script>
+<script src="js/simulation.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
